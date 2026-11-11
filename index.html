@@ -1,634 +1,188 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#3b2a8f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#3b2a8f">
-<title>Times Table Quiz</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23ffb627'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='Arial' font-weight='bold' fill='%233b2a8f'>×</text></svg>">
-<style>
-  :root {
-    --bg1: #3b2a8f;
-    --bg2: #6a3fc9;
-    --card: #ffffff;
-    --ink: #2a2350;
-    --muted: #7a73a0;
-    --accent: #ffb627;
-    --accent-dark: #e09400;
-    --good: #22b573;
-    --bad: #e53935;
-    --key: #f2efff;
-    --key-press: #ddd5ff;
-  }
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0; padding: 0; height: 100%;
-    font-family: "Trebuchet MS", "Avenir Next Rounded", "Nunito", system-ui, sans-serif;
-    color: var(--ink);
-    background: linear-gradient(160deg, var(--bg1), var(--bg2));
-    background-attachment: fixed;
-    -webkit-user-select: none; user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    overscroll-behavior: none;
-  }
-  body { min-height: 100dvh; }
-  button { font-family: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
-
-  .screen {
-    display: none;
-    flex-direction: column;
-    min-height: 100dvh;
-    max-width: 480px;
-    margin: 0 auto;
-    padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
-  }
-  .screen.active { display: flex; }
-
-  .btn {
-    border: none;
-    border-radius: 18px;
-    padding: 16px 20px;
-    font-size: 20px;
-    font-weight: 700;
-    background: var(--card);
-    box-shadow: 0 5px 0 rgba(0,0,0,0.18);
-    transition: transform .06s, box-shadow .06s;
-  }
-  .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.18); }
-  .btn.primary { background: var(--accent); color: var(--ink); box-shadow: 0 5px 0 var(--accent-dark); }
-  .btn.primary:active { box-shadow: 0 1px 0 var(--accent-dark); }
-  .btn.big { font-size: 26px; padding: 20px; width: 100%; }
-  .btn.ghost { background: rgba(255,255,255,0.15); color: #fff; box-shadow: none; }
-
-  .icon-btn {
-    width: 44px; height: 44px; border-radius: 12px;
-    border: 2px solid rgba(255,255,255,0.35);
-    background: rgba(255,255,255,0.12);
-    color: #fff; font-size: 20px; padding: 0;
-  }
-
-  /* ---------- Home ---------- */
-  .home-top { display: flex; justify-content: flex-end; }
-  .hero { text-align: center; color: #fff; margin: 4px 0 18px; }
-  .hero .badge {
-    width: 96px; height: 96px; margin: 0 auto 10px;
-    border-radius: 50%; background: var(--accent);
-    display: grid; place-items: center;
-    font-size: 64px; font-weight: 900; color: var(--bg1);
-    box-shadow: 0 6px 0 var(--accent-dark);
-    animation: bob 2.4s ease-in-out infinite;
-  }
-  @keyframes bob { 50% { transform: translateY(-6px) rotate(-6deg); } }
-  .hero h1 { margin: 0; font-size: 34px; letter-spacing: .5px; }
-  .hero p { margin: 6px 0 0; opacity: .85; font-size: 16px; }
-
-  .panel {
-    background: var(--card);
-    border-radius: 22px;
-    padding: 18px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-    margin-bottom: 18px;
-  }
-  .panel h3 { margin: 0 0 10px; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
-  .setting + .setting { margin-top: 18px; }
-
-  .mode-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .mode {
-    border: 3px solid #e3defa; background: #faf9ff;
-    border-radius: 16px; padding: 12px 8px; text-align: center;
-  }
-  .mode b { display: block; font-size: 19px; }
-  .mode span { font-size: 13px; color: var(--muted); }
-  .mode.selected { border-color: var(--bg2); background: #efe9ff; }
-
-  .stepper { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .stepper button {
-    width: 56px; height: 56px; border-radius: 16px; border: none;
-    background: var(--key); font-size: 30px; font-weight: 800;
-    box-shadow: 0 4px 0 #cfc6f5;
-  }
-  .stepper button:active { transform: translateY(3px); box-shadow: 0 1px 0 #cfc6f5; }
-  .stepper .val { font-size: 30px; font-weight: 800; text-align: center; flex: 1; }
-  .stepper .val small { font-size: 15px; color: var(--muted); font-weight: 600; }
-
-  .best { text-align: center; color: #fff; opacity: .85; margin-top: 12px; font-size: 15px; min-height: 1em; }
-
-  /* ---------- Quiz ---------- */
-  .quiz-top { display: flex; align-items: center; justify-content: space-between; color: #fff; gap: 10px; }
-  .quiz-top .progress { font-size: 18px; font-weight: 700; }
-  .score-pill { background: rgba(255,255,255,0.18); border-radius: 999px; padding: 6px 14px; font-weight: 700; }
-
-  .dots { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; margin: 12px 0 6px; }
-  .dots i { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.25); }
-  .dots i.now { background: #fff; transform: scale(1.25); }
-  .dots i.ok { background: var(--good); }
-  .dots i.no { background: var(--bad); }
-
-  .timer { display: flex; align-items: center; gap: 10px; margin: 8px 0 14px; }
-  .timer-track { flex: 1; height: 16px; border-radius: 999px; background: rgba(255,255,255,0.2); overflow: hidden; }
-  .timer-fill { height: 100%; width: 100%; background: var(--good); border-radius: 999px; }
-  .timer-num { color: #fff; font-weight: 800; font-size: 22px; width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
-
-  .question-card {
-    background: var(--card); border-radius: 26px;
-    padding: 22px 12px; text-align: center;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.22);
-    position: relative; overflow: hidden;
-    transition: background .15s;
-  }
-  .question-card.correct { background: #dff7ea; }
-  .question-card.wrong { background: #fde3e3; animation: shake .35s; }
-  @keyframes shake { 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
-  .q-text { font-size: clamp(44px, 14vw, 64px); font-weight: 900; line-height: 1.1; white-space: nowrap; }
-  .answer-box {
-    margin: 14px auto 0; min-height: 70px; width: 70%;
-    border-radius: 18px; border: 4px dashed #d8d1f7;
-    font-size: 48px; font-weight: 900; display: grid; place-items: center;
-    font-variant-numeric: tabular-nums;
-  }
-  .answer-box.filled { border-style: solid; border-color: var(--bg2); }
-  .feedback { min-height: 30px; margin-top: 10px; font-size: 22px; font-weight: 800; }
-  .feedback.good { color: var(--good); }
-  .feedback.bad { color: var(--bad); }
-
-  .keypad {
-    margin-top: auto; padding-top: 16px;
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-  }
-  .key {
-    border: none; border-radius: 18px; background: var(--card);
-    font-size: 32px; font-weight: 800; height: clamp(58px, 9.5dvh, 76px);
-    box-shadow: 0 5px 0 rgba(0,0,0,0.2);
-  }
-  .key:active, .key.pressed { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.2); background: var(--key-press); }
-  .key.del { background: #ffe1e1; font-size: 26px; }
-  .key.go { background: var(--accent); box-shadow: 0 5px 0 var(--accent-dark); font-size: 24px; }
-  .key:disabled { opacity: .55; }
-
-  /* ---------- Results ---------- */
-  .result-hero { text-align: center; color: #fff; margin: 8px 0 16px; }
-  .result-hero .emoji { font-size: 64px; line-height: 1; }
-  .result-hero h2 { margin: 8px 0 0; font-size: 28px; }
-  .score-ring {
-    width: 180px; height: 180px; margin: 0 auto 10px; position: relative;
-  }
-  .score-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-  .score-ring .pct {
-    position: absolute; inset: 0; display: grid; place-items: center;
-    color: #fff; font-size: 46px; font-weight: 900;
-  }
-  .score-line { font-size: 22px; font-weight: 700; }
-
-  .wrong-list { list-style: none; margin: 0; padding: 0; }
-  .wrong-list li {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 4px; border-bottom: 2px solid #f0edfb; font-size: 22px; font-weight: 700;
-  }
-  .wrong-list li:last-child { border-bottom: none; }
-  .wrong-list .eq { white-space: nowrap; }
-  .wrong-list .correct-ans { color: var(--bad); font-weight: 900; }
-  .wrong-list .yours { font-size: 15px; color: var(--muted); font-weight: 600; text-align: right; }
-  .wrong-list .yours s { color: var(--muted); }
-  .all-right { text-align: center; font-size: 20px; font-weight: 700; color: var(--good); padding: 8px 0; }
-
-  .result-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: auto; }
-
-  .confetti { position: fixed; top: -20px; width: 10px; height: 16px; z-index: 50; pointer-events: none; animation: fall linear forwards; }
-  @keyframes fall { to { transform: translateY(110dvh) rotate(720deg); } }
-</style>
+<title>Maths Buddy</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐨</text></svg>">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- ================= HOME ================= -->
-<section id="screen-home" class="screen active">
-  <div class="home-top">
-    <button class="icon-btn sound-btn" aria-label="Toggle sound">🔊</button>
+<!-- ============ HOME ============ -->
+<section id="home" class="screen active">
+  <div class="topbar">
+    <span class="score-pill" id="total-stars">⭐ 0</span>
+    <div class="right">
+      <button class="icon-btn" id="btn-stickers" aria-label="My stickers">🏅</button>
+      <button class="icon-btn" id="btn-sound" aria-label="Sound on or off">🔊</button>
+      <button class="icon-btn" id="btn-settings" aria-label="Settings">⚙️</button>
+    </div>
   </div>
   <div class="hero">
-    <div class="badge">×</div>
-    <h1>Times Table Quiz</h1>
-    <p>How fast can you multiply?</p>
+    <div id="hero-koala"></div>
+    <div>
+      <h1>Maths Buddy</h1>
+      <p id="hero-msg">Hi! I'm Kip. Pick your year and let's play!</p>
+    </div>
   </div>
+  <div class="years" id="years"></div>
+  <div class="feature">
+    <button class="btn" id="btn-tt"><span>⚡</span>Times Tables<small>beat the clock</small></button>
+    <button class="btn" id="btn-mixed"><span>🎲</span>Mixed Quiz<small id="mixed-stars"></small></button>
+  </div>
+  <div id="topic-list"></div>
+  <div class="foot">Based on the Australian Curriculum · Foundation to Year 6</div>
+</section>
 
+<!-- ============ TIMES TABLES SETUP ============ -->
+<section id="tt" class="screen">
+  <div class="topbar">
+    <button class="icon-btn" data-home aria-label="Back">←</button>
+    <h2>⚡ Times Tables</h2>
+    <span style="width:44px"></span>
+  </div>
   <div class="panel">
     <div class="setting">
       <h3>Mode</h3>
       <div class="mode-toggle">
-        <button class="mode" data-mode="normal"><b>Normal</b><span>e.g. 7 × 8</span></button>
-        <button class="mode" data-mode="advanced"><b>Advanced</b><span>e.g. 14 × 6</span></button>
+        <button class="mode" data-mode="normal"><b>Normal</b><span>7 × 8</span></button>
+        <button class="mode" data-mode="advanced"><b>Advanced</b><span>14 × 6</span></button>
       </div>
     </div>
     <div class="setting">
       <h3>Seconds per question</h3>
-      <div class="stepper" data-setting="time">
-        <button data-step="-1" aria-label="Less time">−</button>
-        <div class="val"><span id="val-time">10</span> <small>sec</small></div>
-        <button data-step="1" aria-label="More time">+</button>
+      <div class="stepper">
+        <button data-step="ttTime" data-d="-1" aria-label="Less time">−</button>
+        <div class="val"><span id="v-ttTime">10</span> <small>sec</small></div>
+        <button data-step="ttTime" data-d="1" aria-label="More time">+</button>
       </div>
     </div>
     <div class="setting">
       <h3>Number of questions</h3>
-      <div class="stepper" data-setting="count">
-        <button data-step="-1" aria-label="Fewer questions">−</button>
-        <div class="val"><span id="val-count">10</span> <small>questions</small></div>
-        <button data-step="1" aria-label="More questions">+</button>
+      <div class="stepper">
+        <button data-step="ttCount" data-d="-5" aria-label="Fewer questions">−</button>
+        <div class="val"><span id="v-ttCount">10</span> <small>questions</small></div>
+        <button data-step="ttCount" data-d="5" aria-label="More questions">+</button>
       </div>
     </div>
   </div>
-
-  <button id="btn-start" class="btn primary big">Start ▶</button>
-  <div class="best" id="best"></div>
+  <button class="btn primary big" id="btn-tt-start">Start ▶</button>
+  <div class="center-note" id="tt-best"></div>
 </section>
 
-<!-- ================= QUIZ ================= -->
-<section id="screen-quiz" class="screen">
-  <div class="quiz-top">
+<!-- ============ SETTINGS ============ -->
+<section id="settings" class="screen">
+  <div class="topbar">
+    <button class="icon-btn" data-home aria-label="Back">←</button>
+    <h2>⚙️ Settings</h2>
+    <span style="width:44px"></span>
+  </div>
+  <div class="panel">
+    <div class="setting">
+      <h3>Questions in each quiz</h3>
+      <div class="stepper">
+        <button data-step="count" data-d="-5" aria-label="Fewer questions">−</button>
+        <div class="val"><span id="v-count">10</span> <small>questions</small></div>
+        <button data-step="count" data-d="5" aria-label="More questions">+</button>
+      </div>
+    </div>
+    <div class="setting">
+      <h3>Timer for topic quizzes</h3>
+      <div class="stepper">
+        <button data-step="time" data-d="-5" aria-label="Less time">−</button>
+        <div class="val"><span id="v-time">Off</span></div>
+        <button data-step="time" data-d="5" aria-label="More time">+</button>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Grown-ups</h3>
+    <button class="btn danger" id="btn-reset" style="width:100%">Reset all stars and stickers</button>
+  </div>
+</section>
+
+<!-- ============ STICKERS ============ -->
+<section id="stickers" class="screen">
+  <div class="topbar">
+    <button class="icon-btn" data-home aria-label="Back">←</button>
+    <h2>🏅 My Stickers</h2>
+    <span style="width:44px"></span>
+  </div>
+  <div class="center-note" id="sticker-note"></div>
+  <div class="panel"><div class="sticker-grid" id="sticker-grid"></div></div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="quiz" class="screen">
+  <div class="topbar">
     <button class="icon-btn" id="btn-quit" aria-label="Quit">✕</button>
-    <div class="progress" id="progress">Question 1 / 10</div>
-    <div class="score-pill" id="score-pill">⭐ 0</div>
+    <h2 id="quiz-title"></h2>
+    <span class="score-pill">⭐ <span id="score">0</span></span>
   </div>
   <div class="dots" id="dots"></div>
-  <div class="timer">
+  <div class="timer" id="timer">
     <div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div>
-    <div class="timer-num" id="timer-num">10</div>
+    <div class="timer-num" id="timer-num"></div>
   </div>
-  <div class="question-card" id="q-card">
-    <div class="q-text" id="q-text">7 × 8</div>
-    <div class="answer-box" id="answer-box"></div>
+  <div class="question-card" id="qcard">
+    <div class="mini-koala" id="mini-koala"></div>
+    <div class="q-text" id="q-text"></div>
+    <div class="q-vis" id="q-vis"></div>
+    <div class="answer-row" id="answer-row">
+      <span id="ans-pre"></span>
+      <div class="answer-box empty" id="answer">?</div>
+      <span id="ans-unit"></span>
+    </div>
     <div class="feedback" id="feedback"></div>
   </div>
+  <div class="choices hidden" id="choices"></div>
   <div class="keypad" id="keypad">
-    <button class="key" data-k="1">1</button>
-    <button class="key" data-k="2">2</button>
-    <button class="key" data-k="3">3</button>
-    <button class="key" data-k="4">4</button>
-    <button class="key" data-k="5">5</button>
-    <button class="key" data-k="6">6</button>
-    <button class="key" data-k="7">7</button>
-    <button class="key" data-k="8">8</button>
-    <button class="key" data-k="9">9</button>
-    <button class="key del" data-k="del" aria-label="Delete">⌫</button>
-    <button class="key" data-k="0">0</button>
-    <button class="key go" data-k="go">OK ✓</button>
+    <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+    <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+    <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+    <button class="key" data-k=".">.</button><button class="key" data-k="0">0</button><button class="key del" data-k="del">⌫</button>
+    <button class="key go" data-k="ok">OK ✓</button>
   </div>
+  <button class="btn primary big hidden" id="btn-next">Next ▶</button>
 </section>
 
-<!-- ================= RESULTS ================= -->
-<section id="screen-results" class="screen">
+<!-- ============ RESULTS ============ -->
+<section id="results" class="screen">
   <div class="result-hero">
     <div class="score-ring">
       <svg viewBox="0 0 120 120">
-        <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="12"/>
+        <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="12"/>
         <circle id="ring" cx="60" cy="60" r="52" fill="none" stroke="#ffb627" stroke-width="12"
                 stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"
                 style="transition: stroke-dashoffset 1s ease-out"/>
       </svg>
       <div class="pct" id="pct">0%</div>
     </div>
-    <div class="score-line" id="score-line">0 out of 10 correct</div>
+    <div class="score-line" id="score-line"></div>
+    <div class="earned" id="earned"></div>
     <h2 id="result-msg"></h2>
+    <div class="new-sticker hidden" id="new-sticker"></div>
   </div>
-
   <div class="panel" id="wrong-panel">
-    <h3 id="wrong-title">Let's fix these</h3>
+    <h3 id="wrong-title">Let's learn these</h3>
     <ul class="wrong-list" id="wrong-list"></ul>
   </div>
-
   <div class="result-buttons">
     <button class="btn" id="btn-home">🏠 Home</button>
     <button class="btn primary" id="btn-again">Play again</button>
   </div>
 </section>
 
-<script>
-"use strict";
-
-/* ============================== Settings ============================== */
-
-const LIMITS = { time: [3, 60], count: [5, 50] };
-const STEP = { time: 1, count: 5 };
-const settings = { mode: "normal", time: 10, count: 10 };
-
-function load(key, fallback) {
-  try { const v = JSON.parse(localStorage.getItem("ttq-" + key)); return v ?? fallback; }
-  catch { return fallback; }
-}
-function save(key, v) {
-  try { localStorage.setItem("ttq-" + key, JSON.stringify(v)); } catch {}
-}
-Object.assign(settings, load("settings", {}));
-let muted = load("muted", false);
-
-const $ = (id) => document.getElementById(id);
-
-function renderSettings() {
-  document.querySelectorAll(".mode").forEach(b =>
-    b.classList.toggle("selected", b.dataset.mode === settings.mode));
-  $("val-time").textContent = settings.time;
-  $("val-count").textContent = settings.count;
-  const best = load("best-" + settings.mode, null);
-  $("best").textContent = best !== null ? `🏆 Best ${settings.mode} score: ${best}%` : "";
-}
-
-document.querySelectorAll(".mode").forEach(b => b.addEventListener("click", () => {
-  settings.mode = b.dataset.mode; save("settings", settings); sfx.tap(); renderSettings();
-}));
-
-document.querySelectorAll(".stepper").forEach(st => {
-  const key = st.dataset.setting;
-  st.querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => {
-    const [lo, hi] = LIMITS[key];
-    let v = settings[key] + Number(btn.dataset.step) * STEP[key];
-    // keep question counts on nice numbers (5, 10, 15 ...)
-    if (key === "count") v = Math.round(v / STEP.count) * STEP.count;
-    settings[key] = Math.max(lo, Math.min(hi, v));
-    save("settings", settings); sfx.tap(); renderSettings();
-  }));
-});
-
-/* ============================== Sound ============================== */
-
-let actx = null;
-function audio() {
-  if (!actx) {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (AC) actx = new AC();
-  }
-  if (actx && actx.state === "suspended") actx.resume();
-  return actx;
-}
-function tone(freq, dur, type = "sine", vol = 0.15, delay = 0) {
-  if (muted) return;
-  const a = audio(); if (!a) return;
-  const t = a.currentTime + delay;
-  const o = a.createOscillator(), g = a.createGain();
-  o.type = type; o.frequency.setValueAtTime(freq, t);
-  g.gain.setValueAtTime(vol, t);
-  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  o.connect(g).connect(a.destination);
-  o.start(t); o.stop(t + dur + 0.02);
-}
-const sfx = {
-  tap:   () => tone(660, 0.06, "triangle", 0.08),
-  good:  () => { tone(660, 0.12, "triangle"); tone(990, 0.2, "triangle", 0.15, 0.1); },
-  bad:   () => { tone(220, 0.25, "sawtooth", 0.08); tone(160, 0.3, "sawtooth", 0.08, 0.12); },
-  tick:  () => tone(1200, 0.04, "square", 0.04),
-  done:  () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.25, "triangle", 0.14, i * 0.13)),
-};
-
-function renderSound() {
-  document.querySelectorAll(".sound-btn").forEach(b => b.textContent = muted ? "🔇" : "🔊");
-}
-document.querySelectorAll(".sound-btn").forEach(b => b.addEventListener("click", () => {
-  muted = !muted; save("muted", muted); renderSound(); sfx.tap();
-}));
-
-/* ============================== Questions ============================== */
-
-const rand = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
-
-function makeQuestion(mode) {
-  if (mode === "advanced") {
-    // one low two-digit number (10–20) times a single digit (2–9), random order
-    const big = rand(10, 20), small = rand(2, 9);
-    return Math.random() < 0.5 ? { a: big, b: small } : { a: small, b: big };
-  }
-  return { a: rand(1, 9), b: rand(1, 9) };
-}
-
-function makeQuiz(mode, n) {
-  const qs = [], seen = new Set();
-  let guard = 0;
-  while (qs.length < n) {
-    const q = makeQuestion(mode);
-    const key = Math.min(q.a, q.b) + "x" + Math.max(q.a, q.b);
-    // avoid repeats (and too many ×1) while there are enough unique questions to go round
-    const tooEasy = mode === "normal" && (q.a === 1 || q.b === 1) && Math.random() < 0.7;
-    if ((seen.has(key) || tooEasy) && guard++ < 2000) continue;
-    seen.add(key);
-    qs.push({ ...q, answer: q.a * q.b, given: null });
-  }
-  return qs;
-}
-
-/* ============================== Quiz flow ============================== */
-
-let quiz = [], idx = 0, input = "", locked = false;
-let deadline = 0, timerRAF = 0, lastTickSec = -1, nextTimeout = 0;
-
-function show(id) {
-  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("active", s.id === id));
-  window.scrollTo(0, 0);
-}
-
-function startQuiz() {
-  audio(); // unlock audio on user gesture
-  quiz = makeQuiz(settings.mode, settings.count);
-  idx = 0;
-  $("dots").innerHTML = quiz.map(() => "<i></i>").join("");
-  show("screen-quiz");
-  showQuestion();
-}
-
-function showQuestion() {
-  const q = quiz[idx];
-  input = ""; locked = false;
-  $("q-text").textContent = `${q.a} × ${q.b}`;
-  $("q-card").className = "question-card";
-  $("feedback").className = "feedback";
-  $("feedback").textContent = "";
-  $("progress").textContent = `Question ${idx + 1} / ${quiz.length}`;
-  $("score-pill").textContent = "⭐ " + quiz.filter(x => x.correct).length;
-  const dots = $("dots").children;
-  for (let i = 0; i < dots.length; i++) {
-    dots[i].className = i === idx ? "now" : quiz[i].given === null && i > idx ? "" :
-      i < idx ? (quiz[i].correct ? "ok" : "no") : "";
-  }
-  setKeysDisabled(false);
-  renderInput();
-  deadline = performance.now() + settings.time * 1000;
-  lastTickSec = -1;
-  clearInterval(timerRAF);
-  timerRAF = setInterval(tickTimer, 50);
-  tickTimer();
-}
-
-function tickTimer() {
-  if (locked) return;
-  const now = performance.now();
-  const left = Math.max(0, deadline - now);
-  const frac = left / (settings.time * 1000);
-  const fill = $("timer-fill");
-  fill.style.width = (frac * 100) + "%";
-  fill.style.background = frac > 0.5 ? "var(--good)" : frac > 0.25 ? "var(--accent)" : "var(--bad)";
-  const sec = Math.ceil(left / 1000);
-  $("timer-num").textContent = sec;
-  if (sec !== lastTickSec) {
-    if (sec <= 3 && sec > 0 && lastTickSec !== -1) sfx.tick();
-    lastTickSec = sec;
-  }
-  if (left <= 0) { submit(true); return; }
-}
-
-function renderInput() {
-  const box = $("answer-box");
-  box.textContent = input || "?";
-  box.style.color = input ? "" : "#cfc8ef";
-  box.classList.toggle("filled", !!input);
-}
-
-function setKeysDisabled(d) {
-  document.querySelectorAll(".key").forEach(k => k.disabled = d);
-}
-
-function press(k) {
-  if (locked) return;
-  if (k === "go") { if (input) submit(false); return; }
-  sfx.tap();
-  if (k === "del") input = input.slice(0, -1);
-  else if (input.length < 3) input = (input === "0" ? "" : input) + k;
-  renderInput();
-}
-
-function submit(timedOut) {
-  if (locked) return;
-  locked = true;
-  clearInterval(timerRAF);
-  setKeysDisabled(true);
-  const q = quiz[idx];
-  q.given = input === "" ? null : Number(input);
-  q.timedOut = timedOut && input === "";
-  q.correct = q.given === q.answer;
-  const card = $("q-card"), fb = $("feedback");
-  if (q.correct) {
-    card.classList.add("correct");
-    fb.className = "feedback good";
-    fb.textContent = ["Great! 🎉", "Correct! ✅", "Super! ⭐", "Nice one! 👍", "Brilliant! 🌟"][rand(0, 4)];
-    sfx.good();
-  } else {
-    card.classList.add("wrong");
-    fb.className = "feedback bad";
-    fb.textContent = (q.timedOut ? "⏰ Time's up! " : "Oops! ") + `${q.a} × ${q.b} = ${q.answer}`;
-    sfx.bad();
-  }
-  $("score-pill").textContent = "⭐ " + quiz.filter(x => x.correct).length;
-  $("dots").children[idx].className = q.correct ? "ok" : "no";
-  nextTimeout = setTimeout(() => {
-    idx++;
-    if (idx < quiz.length) showQuestion(); else showResults();
-  }, q.correct ? 800 : 1800);
-}
-
-function quit() {
-  clearInterval(timerRAF);
-  clearTimeout(nextTimeout);
-  locked = true;
-  renderSettings();
-  show("screen-home");
-}
-
-/* ============================== Results ============================== */
-
-function showResults() {
-  const total = quiz.length;
-  const right = quiz.filter(q => q.correct).length;
-  const pct = Math.round(right / total * 100);
-
-  show("screen-results");
-  $("pct").textContent = "0%";
-  $("score-line").textContent = `${right} out of ${total} correct`;
-  const ring = $("ring");
-  ring.style.strokeDashoffset = 326.7;
-  setTimeout(() => { ring.style.strokeDashoffset = 326.7 * (1 - pct / 100); }, 50);
-  // count-up animation
-  const t0 = performance.now();
-  const counter = setInterval(() => {
-    const p = Math.min(1, (performance.now() - t0) / 1000);
-    $("pct").textContent = Math.round(pct * p) + "%";
-    if (p >= 1) clearInterval(counter);
-  }, 30);
-
-  $("result-msg").textContent =
-    pct === 100 ? "Perfect score! 🏆" :
-    pct >= 80 ? "Fantastic work! 🌟" :
-    pct >= 60 ? "Good job! 👍" :
-    pct >= 40 ? "Keep practising! 💪" : "Let's try again! 🙂";
-
-  const wrong = quiz.filter(q => !q.correct);
-  const list = $("wrong-list");
-  if (wrong.length === 0) {
-    $("wrong-title").textContent = "All correct";
-    list.innerHTML = `<li class="all-right" style="justify-content:center">Every answer right! 🎉</li>`;
-  } else {
-    $("wrong-title").textContent = `Incorrect answers (${wrong.length})`;
-    list.innerHTML = wrong.map(q => `
-      <li>
-        <span class="eq">${q.a} × ${q.b} = <span class="correct-ans">${q.answer}</span></span>
-        <span class="yours">${q.given === null ? "⏰ no answer" : `you said <s>${q.given}</s>`}</span>
-      </li>`).join("");
-  }
-
-  const bestKey = "best-" + settings.mode;
-  const best = load(bestKey, null);
-  if (best === null || pct > best) save(bestKey, pct);
-
-  sfx.done();
-  if (pct >= 80) confetti();
-}
-
-function confetti() {
-  const colors = ["#ffb627", "#22b573", "#4fc3f7", "#ff6b9d", "#ffffff"];
-  for (let i = 0; i < 60; i++) {
-    const c = document.createElement("div");
-    c.className = "confetti";
-    c.style.left = Math.random() * 100 + "vw";
-    c.style.background = colors[i % colors.length];
-    c.style.animationDuration = (1.8 + Math.random() * 1.6) + "s";
-    c.style.animationDelay = Math.random() * 0.6 + "s";
-    document.body.appendChild(c);
-    setTimeout(() => c.remove(), 4200);
-  }
-}
-
-/* ============================== Input wiring ============================== */
-
-// pointerdown makes the keypad feel instant on phones (no click delay)
-$("keypad").addEventListener("pointerdown", (e) => {
-  const k = e.target.closest(".key");
-  if (!k || k.disabled) return;
-  e.preventDefault();
-  press(k.dataset.k);
-});
-
-document.addEventListener("keydown", (e) => {
-  const onQuiz = $("screen-quiz").classList.contains("active");
-  if (onQuiz) {
-    let k = null;
-    if (/^[0-9]$/.test(e.key)) k = e.key;
-    else if (e.key === "Backspace") k = "del";
-    else if (e.key === "Enter") k = "go";
-    else if (e.key === "Escape") { quit(); return; }
-    if (k) {
-      e.preventDefault();
-      const btn = document.querySelector(`.key[data-k="${k}"]`);
-      btn.classList.add("pressed"); setTimeout(() => btn.classList.remove("pressed"), 100);
-      press(k);
-    }
-  } else if (e.key === "Enter") {
-    e.preventDefault();
-    startQuiz();
-  }
-});
-
-$("btn-start").addEventListener("click", startQuiz);
-$("btn-again").addEventListener("click", startQuiz);
-$("btn-home").addEventListener("click", () => { renderSettings(); show("screen-home"); });
-$("btn-quit").addEventListener("click", quit);
-
-renderSettings();
-renderSound();
-</script>
+<script src="js/core.js"></script>
+<script src="js/topics-number1.js"></script>
+<script src="js/topics-number2.js"></script>
+<script src="js/topics-measure.js"></script>
+<script src="js/topics-space.js"></script>
+<script src="js/app.js"></script>
+<script src="js/quiz.js"></script>
 </body>
 </html>
