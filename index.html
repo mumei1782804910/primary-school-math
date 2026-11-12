@@ -30,48 +30,14 @@
     </div>
   </div>
   <div class="years" id="years"></div>
-  <div class="feature">
-    <button class="btn" id="btn-tt"><span>⚡</span>Times Tables<small>beat the clock</small></button>
-    <button class="btn" id="btn-mixed"><span>🎲</span>Mixed Quiz<small id="mixed-stars"></small></button>
-  </div>
+  <button class="mixed" id="btn-mixed">
+    <span class="ic">🎲</span>
+    <span class="txt"><b>Mixed Quiz</b><small id="mixed-sub"></small></span>
+    <span id="mixed-stars"></span>
+    <span class="go">▶</span>
+  </button>
   <div id="topic-list"></div>
   <div class="foot">Based on the Australian Curriculum · Foundation to Year 6</div>
-</section>
-
-<!-- ============ TIMES TABLES SETUP ============ -->
-<section id="tt" class="screen">
-  <div class="topbar">
-    <button class="icon-btn" data-home aria-label="Back">←</button>
-    <h2>⚡ Times Tables</h2>
-    <span style="width:44px"></span>
-  </div>
-  <div class="panel">
-    <div class="setting">
-      <h3>Mode</h3>
-      <div class="mode-toggle">
-        <button class="mode" data-mode="normal"><b>Normal</b><span>7 × 8</span></button>
-        <button class="mode" data-mode="advanced"><b>Advanced</b><span>14 × 6</span></button>
-      </div>
-    </div>
-    <div class="setting">
-      <h3>Seconds per question</h3>
-      <div class="stepper">
-        <button data-step="ttTime" data-d="-1" aria-label="Less time">−</button>
-        <div class="val"><span id="v-ttTime">10</span> <small>sec</small></div>
-        <button data-step="ttTime" data-d="1" aria-label="More time">+</button>
-      </div>
-    </div>
-    <div class="setting">
-      <h3>Number of questions</h3>
-      <div class="stepper">
-        <button data-step="ttCount" data-d="-5" aria-label="Fewer questions">−</button>
-        <div class="val"><span id="v-ttCount">10</span> <small>questions</small></div>
-        <button data-step="ttCount" data-d="5" aria-label="More questions">+</button>
-      </div>
-    </div>
-  </div>
-  <button class="btn primary big" id="btn-tt-start">Start ▶</button>
-  <div class="center-note" id="tt-best"></div>
 </section>
 
 <!-- ============ SETTINGS ============ -->
@@ -91,12 +57,13 @@
       </div>
     </div>
     <div class="setting">
-      <h3>Timer for topic quizzes</h3>
+      <h3>Timer (seconds per question)</h3>
       <div class="stepper">
         <button data-step="time" data-d="-5" aria-label="Less time">−</button>
         <div class="val"><span id="v-time">Off</span></div>
         <button data-step="time" data-d="5" aria-label="More time">+</button>
       </div>
+      <p class="hint">Trickier questions (word problems, graphs, big sums) automatically get extra time. Tap − down to Off for no timer.</p>
     </div>
   </div>
   <div class="panel">

@@ -54,10 +54,19 @@ button { font-family: inherit; color: inherit; cursor: pointer; touch-action: ma
 }
 .years button small { display: block; font-size: 10px; font-weight: 600; opacity: .8; margin-bottom: 3px; }
 .years button.selected { background: var(--accent); color: var(--ink); box-shadow: 0 4px 0 var(--accent-dark); }
-.feature { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0 2px; }
-.feature .btn { padding: 14px 8px; font-size: 17px; line-height: 1.25; }
-.feature .btn span { display: block; font-size: 28px; }
-.feature .btn small { display: block; font-size: 12px; color: var(--muted); font-weight: 600; }
+.mixed {
+  display: flex; align-items: center; gap: 12px; width: 100%; margin: 14px 0 2px; padding: 12px 14px; text-align: left;
+  border: none; border-radius: 20px; background: linear-gradient(135deg, #ffd166, var(--accent)); box-shadow: 0 5px 0 var(--accent-dark);
+}
+.mixed:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--accent-dark); }
+.mixed .ic { font-size: 38px; line-height: 1; animation: bob 2.6s ease-in-out infinite; }
+.mixed .txt { flex: 1; min-width: 0; }
+.mixed b { display: block; font-size: 21px; }
+.mixed small { display: block; font-size: 13px; font-weight: 600; opacity: .8; }
+.mixed .stars { color: rgba(255,255,255,.55); font-size: 15px; margin: 0; }
+.mixed .stars b { display: inline; font-size: inherit; color: var(--bg1); }
+.mixed .go { width: 38px; height: 38px; border-radius: 50%; background: var(--card); display: grid; place-items: center; font-size: 16px; flex: none; }
+.hint { margin: 12px 0 0; font-size: 13.5px; color: var(--muted); line-height: 1.35; }
 .strand { color: #fff; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; margin: 18px 4px 8px; opacity: .9; }
 .topics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .topic {
@@ -71,11 +80,6 @@ button { font-family: inherit; color: inherit; cursor: pointer; touch-action: ma
 .foot { text-align: center; color: #fff; opacity: .6; font-size: 12px; margin-top: 22px; }
 
 /* ---------- settings / times tables setup ---------- */
-.mode-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.mode { border: 3px solid var(--line); background: #faf9ff; border-radius: 16px; padding: 12px 8px; text-align: center; }
-.mode b { display: block; font-size: 19px; }
-.mode span { font-size: 13px; color: var(--muted); }
-.mode.selected { border-color: var(--bg2); background: #efe9ff; }
 .stepper { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .stepper button { width: 54px; height: 54px; border-radius: 16px; border: none; background: var(--key); font-size: 30px; font-weight: 800; box-shadow: 0 4px 0 #cfc6f5; }
 .stepper button:active { transform: translateY(3px); box-shadow: 0 1px 0 #cfc6f5; }

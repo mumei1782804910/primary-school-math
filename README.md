@@ -14,13 +14,14 @@ Australian Curriculum. Plain HTML, CSS and JavaScript: no build step, no server,
   - Space: shapes, angles, grids & coordinates
   - Statistics & Probability: graphs & data, chance
 - **Mixed Quiz**: random questions from every topic in the chosen year.
-- **Times Tables** challenge: Normal (single digits) or Advanced (one number 10–20),
-  with a countdown per question (default 10 seconds) and 10 questions (both adjustable).
+- **Timer**: 10 seconds per question by default (change it or turn it off in Settings).
+  Quick questions get the set time; working-out questions (fractions, time, graphs, big
+  sums, word problems) automatically get 2–3 times as long.
 - Questions are randomly generated, so every quiz is different.
 - Results show % correct, "X out of N", and each missed question with the right answer in red.
 - Up to 3 stars per topic per year; every 3 stars unlocks a sticker. Progress is saved
   on the device (browser localStorage).
-- Settings (⚙️): questions per quiz, optional timer for topic quizzes, reset progress.
+- Settings (⚙️): questions per quiz, timer, reset progress.
 
 ## Files
 

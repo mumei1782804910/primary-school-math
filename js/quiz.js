@@ -1,8 +1,8 @@
 "use strict";
 /* ===== Maths Buddy: quiz engine + results =====
-   startQuiz({ key, title, count, time, gen }) — time = seconds per question (0 = no timer) */
+   startQuiz({ key, title, count, time, gen }) — time = base seconds per question (0 = no timer), multiplied by each question's q.tx */
 
-const Q = { cfg: null, qs: [], i: 0, score: 0, results: [], input: "", locked: true, deadline: 0, lastTick: 0, timerId: null, nextId: null };
+const Q = { cfg: null, qs: [], i: 0, score: 0, results: [], input: "", locked: true, deadline: 0, limit: 0, lastTick: 0, timerId: null, nextId: null };
 const CHEERS = ["Correct! 🎉", "Great job! ⭐", "You got it! 🙌", "Awesome! 🌟", "Spot on! 🎯", "Too easy! 😎"];
 const plain = (html) => String(html).replace(/<[^>]*>/g, "");
 
@@ -55,14 +55,15 @@ function showQuestion() {
   }
   window.scrollTo(0, 0);
   if (Q.cfg.time) {
-    Q.deadline = Date.now() + Q.cfg.time * 1000; Q.lastTick = 0;
+    Q.limit = Q.cfg.time * (q.tx || 1) * 1000;
+    Q.deadline = Date.now() + Q.limit; Q.lastTick = 0;
     tickTimer();
     Q.timerId = setInterval(tickTimer, 50);
   }
 }
 
 function tickTimer() {
-  const left = Math.max(0, Q.deadline - Date.now()), frac = left / (Q.cfg.time * 1000), secs = Math.ceil(left / 1000);
+  const left = Math.max(0, Q.deadline - Date.now()), frac = left / Q.limit, secs = Math.ceil(left / 1000);
   $("timer-fill").style.width = frac * 100 + "%";
   $("timer-fill").style.background = frac > 0.5 ? "var(--good)" : frac > 0.25 ? "var(--accent)" : "var(--bad)";
   $("timer-num").textContent = secs;
@@ -119,8 +120,7 @@ function submit(timedOut, choice) {
     fb.innerHTML = (given === null ? "⏰ Time's up! " : "") + "Answer: " + answerText(q);
     $("mini-koala").innerHTML = koala("sad");
     sfx.bad();
-    if (Q.cfg.time) Q.nextId = setTimeout(nextQuestion, 1900);
-    else { $("keypad").classList.add("hidden"); $("btn-next").classList.remove("hidden"); }
+    $("keypad").classList.add("hidden"); $("btn-next").classList.remove("hidden");
   }
   const dot = $("dots").children[Q.i];
   if (dot) dot.className = ok ? "ok" : "no";

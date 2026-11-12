@@ -7,11 +7,11 @@ const store = {
   set(k, v) { try { localStorage.setItem("mb-" + k, JSON.stringify(v)); } catch (e) { /* private mode */ } },
 };
 
-// time: seconds per question for topic quizzes (0 = no timer)
-const S = Object.assign({ year: 3, count: 10, time: 0, ttMode: "normal", ttTime: 10, ttCount: 10, sound: true }, store.get("settings", {}));
-let BEST = store.get("best", {}); // key -> best % (key = "3-add", "3-mixed", "tt-normal"…)
-const LIMITS = { count: [5, 30], time: [0, 60], ttTime: [3, 60], ttCount: [5, 50] };
-const saveSettings = () => store.set("settings", S);
+// time: base seconds per question (0 = no timer); slower question types get a multiple of it
+const S = Object.assign({ year: 3, count: 10, time: 10, sound: true }, store.get("settings2", {}));
+let BEST = store.get("best", {}); // key -> best % (key = "3-add", "3-mixed"…)
+const LIMITS = { count: [5, 30], time: [0, 60] };
+const saveSettings = () => store.set("settings2", S);
 
 const STICKERS = ["🐨", "🦘", "🐧", "🦄", "🐬", "🦖", "🚀", "🌈", "🍦", "🎈", "🐢", "🦋", "🐙", "🦊", "🐼", "🍉", "⚽", "🎸", "🏆", "👑",
   "🦜", "🐳", "🍩", "🛹", "🪁", "🦁", "🐸", "🍓", "🚂", "🎨", "🦉", "🐝", "🌻", "🍕", "🤖", "🛸", "🐉", "💎", "🪐", "🥇"];
@@ -68,7 +68,8 @@ function renderHome() {
   $("hero-msg").textContent = pick(HELLOS);
   $("years").innerHTML = YEAR_NAMES.map((n, i) =>
     `<button data-year="${i}" class="${i === y ? "selected" : ""}" aria-label="${n}"><small>${i ? "Year" : "Found."}</small>${i || "F"}</button>`).join("");
-  $("mixed-stars").innerHTML = YEAR_NAMES[y] + starsHTML(starsOf(y + "-mixed"));
+  $("mixed-sub").textContent = "A bit of everything from " + YEAR_NAMES[y];
+  $("mixed-stars").innerHTML = starsHTML(starsOf(y + "-mixed"));
   $("topic-list").innerHTML = STRANDS.map((strand) => {
     const list = TOPICS.filter((t) => t.strand === strand && y >= t.minY && y <= t.maxY);
     if (!list.length) return "";
@@ -81,12 +82,7 @@ function goHome() { renderHome(); show("home"); }
 
 function renderSteppers() {
   $("v-count").textContent = S.count;
-  $("v-time").innerHTML = S.time ? `${S.time} <small>sec each</small>` : "Off";
-  $("v-ttTime").textContent = S.ttTime;
-  $("v-ttCount").textContent = S.ttCount;
-  document.querySelectorAll(".mode").forEach((m) => m.classList.toggle("selected", m.dataset.mode === S.ttMode));
-  const b = BEST["tt-" + S.ttMode];
-  $("tt-best").textContent = b === undefined ? "" : `Best ${S.ttMode} score: ${b}%`;
+  $("v-time").innerHTML = S.time ? `${S.time} <small>sec</small>` : "Off";
 }
 
 function renderStickers() {
@@ -96,31 +92,23 @@ function renderStickers() {
 }
 
 /* ---------- starting quizzes ---------- */
+/* How many times the base timer a question gets: quick recall = 1, working-out = 2, long = 3 */
+const SUMS = ["add", "sub", "mul", "div"], QUICK = ["count", "compare", "pattern", "shape"];
+function timeFactor(t, y) {
+  if (SUMS.includes(t.id)) return y <= 3 ? 1 : y === 4 ? 2 : 3; // written methods from Year 4
+  if (QUICK.includes(t.id)) return 1;
+  return t.id === "word" ? 3 : 2;
+}
+const timedGen = (t, y) => { const q = t.gen(y); q.tx = timeFactor(t, y); return q; };
+
 function startTopic(id) {
   const y = S.year, t = TOPICS.find((x) => x.id === id);
-  startQuiz({ key: y + "-" + id, title: t.icon + " " + t.name, count: S.count, time: S.time, gen: () => t.gen(y) });
+  startQuiz({ key: y + "-" + id, title: t.icon + " " + t.name, count: S.count, time: S.time, gen: () => timedGen(t, y) });
 }
 
 function startMixed() {
   const y = S.year, list = TOPICS.filter((t) => y >= t.minY && y <= t.maxY);
-  startQuiz({ key: y + "-mixed", title: "🎲 Mixed · " + YEAR_NAMES[y], count: S.count, time: S.time, gen: () => pick(list).gen(y) });
-}
-
-function timesTableQuestion() {
-  let a, b;
-  if (S.ttMode === "advanced") {
-    a = R(10, 20); b = R(2, 9);
-    if (Math.random() < 0.5) [a, b] = [b, a];
-  } else {
-    do { a = R(1, 9); b = R(1, 9); } while ((a === 1 || b === 1) && Math.random() < 0.75);
-  }
-  const q = num(`${a} × ${b}`, a * b);
-  q.big = true;
-  return q;
-}
-
-function startTimesTables() {
-  startQuiz({ key: "tt-" + S.ttMode, title: "⚡ Times Tables", count: S.ttCount, time: S.ttTime, gen: timesTableQuestion });
+  startQuiz({ key: y + "-mixed", title: "🎲 Mixed · " + YEAR_NAMES[y], count: S.count, time: S.time, gen: () => timedGen(pick(list), y) });
 }
 
 /* ---------- events ---------- */
@@ -131,15 +119,12 @@ document.addEventListener("click", (e) => {
   if (d.year !== undefined) { S.year = Number(d.year); saveSettings(); sfx.tap(); renderHome(); }
   else if (d.topic) { sfx.tap(); startTopic(d.topic); }
   else if (d.home !== undefined) { sfx.tap(); goHome(); }
-  else if (d.mode) { S.ttMode = d.mode; saveSettings(); sfx.tap(); renderSteppers(); }
   else if (d.step) {
     const [lo, hi] = LIMITS[d.step];
     S[d.step] = Math.max(lo, Math.min(hi, S[d.step] + Number(d.d)));
     saveSettings(); sfx.tap(); renderSteppers();
   }
 });
-$("btn-tt").onclick = () => { sfx.tap(); renderSteppers(); show("tt"); };
-$("btn-tt-start").onclick = () => startTimesTables();
 $("btn-mixed").onclick = () => { sfx.tap(); startMixed(); };
 $("btn-settings").onclick = () => { sfx.tap(); renderSteppers(); show("settings"); };
 $("btn-stickers").onclick = () => { sfx.tap(); renderStickers(); show("stickers"); };
